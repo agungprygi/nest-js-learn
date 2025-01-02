@@ -6,10 +6,13 @@ import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
-
+import { DatabaseService } from './database/database.service';
+import { APP_GUARD } from '@nestjs/core';
+import { AccessTokenGuard } from './modules/auth/guards/accessToken.guard';
 @Module({
   imports: [
     DatabaseModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
@@ -17,11 +20,10 @@ import { UserModule } from './modules/user/user.module';
       playground: true,
       context: ({ req, res }) => ({ req, res }),
     }),
-    ConfigModule.forRoot({}),
     AuthModule,
     UserModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [DatabaseService, { provide: APP_GUARD, useClass: AccessTokenGuard }],
 })
 export class AppModule {}
